@@ -21,6 +21,9 @@
 // specific language governing permissions and limitations under the License.
 //-----------------------------------------------------------------------------
 
+
+ // ADD NEW IP -> search gf
+
 `include "soc_mem_map.svh"
 `include "tcdm_macros.svh"
 `include "axi/assign.svh"
@@ -56,7 +59,8 @@ module soc_interconnect_wrap
        APB_BUS.Master           apb_peripheral_bus, // Connects to all the SoC Peripherals
        XBAR_TCDM_BUS.Master     l2_interleaved_slaves[NR_L2_PORTS], // Connects to the interleaved memory banks
        XBAR_TCDM_BUS.Master     l2_private_slaves[2], // Connects to core-private memory banks
-       XBAR_TCDM_BUS.Master     boot_rom_slave //Connects to the bootrom
+       XBAR_TCDM_BUS.Master     boot_rom_slave,//Connects to the bootrom
+       AXI_BUS_MASTER           gf_mult_slave // Connect gf arith NEW
      );
 
     //**Do not change these values unles you verified that all downstream IPs are properly parametrized and support it**
@@ -109,10 +113,12 @@ module soc_interconnect_wrap
         '{ idx: 1 , start_addr: `SOC_MEM_MAP_PRIVATE_BANK1_START_ADDR , end_addr: `SOC_MEM_MAP_PRIVATE_BANK1_END_ADDR} ,
         '{ idx: 2 , start_addr: `SOC_MEM_MAP_BOOT_ROM_START_ADDR      , end_addr: `SOC_MEM_MAP_BOOT_ROM_END_ADDR}};
 
-    localparam NR_RULES_AXI_CROSSBAR = 2;
+    // ADD new MEM REGION for AXI cross bar for the gf IP
+    localparam NR_RULES_AXI_CROSSBAR = 3;
     localparam addr_map_rule_t [NR_RULES_AXI_CROSSBAR-1:0] AXI_CROSSBAR_RULES = '{
        '{ idx: 0, start_addr: `SOC_MEM_MAP_AXI_PLUG_START_ADDR,    end_addr: `SOC_MEM_MAP_AXI_PLUG_END_ADDR},
-       '{ idx: 1, start_addr: `SOC_MEM_MAP_PERIPHERALS_START_ADDR, end_addr: `SOC_MEM_MAP_PERIPHERALS_END_ADDR}};
+       '{ idx: 1, start_addr: `SOC_MEM_MAP_PERIPHERALS_START_ADDR, end_addr: `SOC_MEM_MAP_PERIPHERALS_END_ADDR},
+       '{ idx :2, start_addr: `SOC_MEM_MAP_GF_MULT_START_ADDR,     end_addr: `SOC_MEM_MAP_GF_MULT_END_ADDR}}; // add new Adress Rule for the new gf IP
 
     //For legacy reasons, the fc_data port can alias the address prefix 0x000 to 0x1c0. E.g. an access to 0x00001234 is
     //mapped to 0x1c001234. The following lines perform this remapping.
@@ -175,9 +181,10 @@ module soc_interconnect_wrap
               .AXI_DATA_WIDTH(32),
               .AXI_ID_WIDTH(pkg_soc_interconnect::AXI_ID_OUT_WIDTH),
               .AXI_USER_WIDTH(AXI_USER_WIDTH)
-              ) axi_slaves[2]();
+              ) axi_slaves[3]();
     `AXI_ASSIGN(axi_slave_plug, axi_slaves[0])
     `AXI_ASSIGN(axi_to_axi_lite_bridge, axi_slaves[1])
+    `AXI_ASSIGN(gf_mult_slave, axi_slave[2]) // add new Port for gf IP
 
     //Interconnect instantiation
     soc_interconnect #(
@@ -191,7 +198,8 @@ module soc_interconnect_wrap
                        .NR_SLAVE_PORTS_CONTIG(3), // Bootrom + number of private memory banks (normally 1 for
                                                   // programm instructions and 1 for programm stack )
                        .NR_ADDR_RULES_SLAVE_PORTS_CONTIG(NR_RULES_CONTIG_CROSSBAR),
-                       .NR_AXI_SLAVE_PORTS(2), // 1 for AXI to cluster, 1 for SoC peripherals (converted to APB)
+// increase size of AXI_SLAVE for gf IP
+                       .NR_AXI_SLAVE_PORTS(3), // 1 for AXI to cluster, 1 for SoC peripherals (converted to APB)
                        .NR_ADDR_RULES_AXI_SLAVE_PORTS(NR_RULES_AXI_CROSSBAR),
                        .AXI_MASTER_ID_WIDTH(1), //Doesn't need to be changed. All axi masters in the current
                                                 //interconnect come from a TCDM protocol converter and thus do not have and AXI ID.
@@ -250,8 +258,6 @@ module soc_interconnect_wrap
                            .NoRules(1),
                            .AddrWidth(32),
                            .DataWidth(32),
-                           .PipelineRequest(1'b0),
-                           .PipelineResponse(1'b0),
                            .rule_t(addr_map_rule_t)
                            ) i_axi_lite_to_apb (
                                                 .clk_i,
