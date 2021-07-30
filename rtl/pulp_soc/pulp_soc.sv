@@ -822,7 +822,7 @@ module pulp_soc import dm::*; #(
 	   .AXI_ID_WIDTH(AXI_ID_OUT_WIDTH),
 	   .AXI_USER_WIDTH(AXI_USER_WIDTH)
     ) i_gf_mult (
-        clk_i(s_soc_clk),               // use clock speed of the SOC
+        .clk_i(s_soc_clk),               // use clock speed of the SOC
         .rst_ni(s_soc_rstn),
         .test_mode_i(dft_test_mode_i),
         .axi_slave(s_gf_mult_bus)      // connection

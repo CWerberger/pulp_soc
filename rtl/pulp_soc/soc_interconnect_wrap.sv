@@ -60,7 +60,7 @@ module soc_interconnect_wrap
        XBAR_TCDM_BUS.Master     l2_interleaved_slaves[NR_L2_PORTS], // Connects to the interleaved memory banks
        XBAR_TCDM_BUS.Master     l2_private_slaves[2], // Connects to core-private memory banks
        XBAR_TCDM_BUS.Master     boot_rom_slave,//Connects to the bootrom
-       AXI_BUS_MASTER           gf_mult_slave // Connect gf arith NEW
+       AXI_BUS.MASTER           gf_mult_slave // Connect gf arith NEW
      );
 
     //**Do not change these values unles you verified that all downstream IPs are properly parametrized and support it**
@@ -184,7 +184,7 @@ module soc_interconnect_wrap
               ) axi_slaves[3]();
     `AXI_ASSIGN(axi_slave_plug, axi_slaves[0])
     `AXI_ASSIGN(axi_to_axi_lite_bridge, axi_slaves[1])
-    `AXI_ASSIGN(gf_mult_slave, axi_slave[2]) // add new Port for gf IP
+    `AXI_ASSIGN(gf_mult_slave, axi_slaves[2]) // add new Port for gf IP
 
     //Interconnect instantiation
     soc_interconnect #(
