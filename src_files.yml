@@ -92,6 +92,9 @@ components_behav:
     skip_synthesis,
   ]
 gf_mult:
+    incdirs: [
+    ../pulp_gf_arith_ip
+  ]
   targets:
     - rtl
   incdirs:
