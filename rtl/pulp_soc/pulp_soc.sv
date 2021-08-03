@@ -415,6 +415,15 @@ module pulp_soc import dm::*; #(
         .AXI_USER_WIDTH ( AXI_USER_WIDTH    )
     ) s_data_out_bus ();
 
+    // AXI Instance (wiring) for gf IP - // ID need to be big enough
+
+    AXI_BUS #(
+        .AXI_ADDR_WIDTH ( AXI_ADDR_WIDTH    ),
+        .AXI_DATA_WIDTH ( AXI_DATA_OUT_WIDTH),
+        .AXI_ID_WIDTH   ( AXI_ID_OUT_WIDTH  ),
+        .AXI_USER_WIDTH ( AXI_USER_WIDTH    )
+    ) s_gf_mult_bus ();
+
     //assign s_data_out_bus.aw_atop = 6'b0;
 
     FLL_BUS #(
@@ -452,14 +461,6 @@ module pulp_soc import dm::*; #(
         logic [3:0] base_addr_int;
         assign base_addr_int = 4'b0001; //FIXME attach this signal somewhere in the soc peripherals --> IGOR
     `endif
-
-// AXI Instance (wiring) for gf IP
-
-    AXI_BUS #(.AXI_ADDR_WIDTH(32),
-              .AXI_DATA_WIDTH(32),
-              .AXI_ID_WIDTH(AXI_ID_OUT_WIDTH),  // ID need to be big enough
-              .AXI_USER_WIDTH(AXI_USER_WIDTH)
-    )s_gf_mult_bus();
 
     logic s_cluster_isolate_dc;
     logic s_rstn_cluster_sync_soc;
@@ -821,12 +822,12 @@ module pulp_soc import dm::*; #(
        .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
 	   .AXI_ID_WIDTH(AXI_ID_OUT_WIDTH),
 	   .AXI_USER_WIDTH(AXI_USER_WIDTH)
-    ) i_gf_mult (
+       ) i_gf_mult (
         .clk_i(s_soc_clk),               // use clock speed of the SOC
         .rst_ni(s_soc_rstn),
         .test_mode_i(dft_test_mode_i),
         .axi_slave(s_gf_mult_bus)      // connection
-    );
+       );
 
 
 
