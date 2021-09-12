@@ -118,7 +118,7 @@ riscv-dbg:
   commit: v0.4.1
   domain: [soc]
 register_interface:
-  commit: v0.3.1
+  commit: v0.2.2
   domain: [soc]
 pulp_gf_arith_ip:
   commit: main
