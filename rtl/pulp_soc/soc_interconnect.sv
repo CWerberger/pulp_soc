@@ -121,7 +121,10 @@ module soc_interconnect
         XBAR_TCDM_BUS err_demux_slaves[2]();
 
         `TCDM_ASSIGN_INTF(master_ports_interleaved_only_checked[i], err_demux_slaves[1]);
-
+   // Workaround for genus (doesn't seem to like references interface
+        // arrays in port connections so we assign it to a scalar interface instance)
+        XBAR_TCDM_BUS err_slave();
+        `TCDM_ASSIGN_INTF(err_slave, err_demux_slaves[0]);
         //The tcdm demux will route all transaction that do not match any addr rule to port 0 (which we connect to an
         //error slave)
         tcdm_demux #(
@@ -140,7 +143,7 @@ module soc_interconnect
         ) i_error_slave_interleaved (
           .clk_i,
           .rst_ni,
-          .slave(err_demux_slaves[0])
+          .slave(err_slave)
           );
     end
 
@@ -272,12 +275,13 @@ module soc_interconnect
                                                     MaxSlvTrans: 4,       //Allow up to 4 in-flight transactions
                                                     //per slave port
                                                     FallThrough: 1,       //Use the reccomended default config
-                                                    LatencyMode: axi_pkg::CUT_MST_PORTS,
+                                                    LatencyMode: axi_pkg::CUT_MST_AX | axi_pkg::MuxW,
                                                     AxiIdWidthSlvPorts: AXI_MASTER_ID_WIDTH,
                                                     AxiIdUsedSlvPorts: AXI_MASTER_ID_WIDTH,
                                                     AxiAddrWidth: BUS_ADDR_WIDTH,
                                                     AxiDataWidth: BUS_DATA_WIDTH,
-                                                    NoAddrRules: NR_ADDR_RULES_AXI_SLAVE_PORTS
+                                                    NoAddrRules: NR_ADDR_RULES_AXI_SLAVE_PORTS,
+                                                    UniqueIds: 0
                                                     };
 
     //Reverse interface array ordering since axi_xbar uses big-endian ordering of the arrays
