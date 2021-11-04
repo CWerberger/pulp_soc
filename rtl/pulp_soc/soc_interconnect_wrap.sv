@@ -181,10 +181,12 @@ module soc_interconnect_wrap
               .AXI_DATA_WIDTH(32),
               .AXI_ID_WIDTH(pkg_soc_interconnect::AXI_ID_OUT_WIDTH),
               .AXI_USER_WIDTH(AXI_USER_WIDTH)
-              ) axi_slaves[3]();
+              ) axi_slaves[3](); 
+        //    ) axi_slaves[4](); // add Viterbi  
     `AXI_ASSIGN(axi_slave_plug, axi_slaves[0])
     `AXI_ASSIGN(axi_to_axi_lite_bridge, axi_slaves[1])
     `AXI_ASSIGN(gf_mult_slave, axi_slaves[2]) // add new Port for gf IP
+   // `AXI_ASSIGN(viterbi_slave, axi_slaves[3])  // virberbi Port
 
     //Interconnect instantiation
     soc_interconnect #(
@@ -200,6 +202,7 @@ module soc_interconnect_wrap
                        .NR_ADDR_RULES_SLAVE_PORTS_CONTIG(NR_RULES_CONTIG_CROSSBAR),
 // increase size of AXI_SLAVE for gf IP
                        .NR_AXI_SLAVE_PORTS(3), // 1 for AXI to cluster, 1 for SoC peripherals (converted to APB)
+                    //  .NR_AXI_SLAVE_PORTS(4), 
                        .NR_ADDR_RULES_AXI_SLAVE_PORTS(NR_RULES_AXI_CROSSBAR),
                        .AXI_MASTER_ID_WIDTH(1), //Doesn't need to be changed. All axi masters in the current
                                                 //interconnect come from a TCDM protocol converter and thus do not have and AXI ID.

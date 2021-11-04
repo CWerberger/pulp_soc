@@ -383,6 +383,13 @@ module pulp_soc import dm::*; #(
         .AXI_ID_WIDTH   ( AXI_ID_OUT_WIDTH  ),
         .AXI_USER_WIDTH ( AXI_USER_WIDTH    )
     ) s_gf_mult_bus ();
+
+    // AXI_BUS #(
+    //     .AXI_ADDR_WIDTH ( AXI_ADDR_WIDTH    ),
+    //     .AXI_DATA_WIDTH ( AXI_DATA_OUT_WIDTH),
+    //     .AXI_ID_WIDTH   ( AXI_ID_OUT_WIDTH  ),
+    //     .AXI_USER_WIDTH ( AXI_USER_WIDTH    )
+    // ) s_viterbi_bus ();
     
     //assign s_data_out_bus.aw_atop = 6'b0;
 
@@ -861,6 +868,7 @@ module pulp_soc import dm::*; #(
         .l2_interleaved_slaves ( s_mem_l2_bus        ),
         .l2_private_slaves     ( s_mem_l2_pri_bus    ),
         .boot_rom_slave        ( s_mem_rom_bus       ),
+     //   .viterbi_slave         ( s_viterbi_bus       ),
         .gf_mult_slave         ( s_gf_mult_bus       )   //connect the new ip to the wrapper
         );
         
@@ -876,6 +884,18 @@ module pulp_soc import dm::*; #(
         .test_mode_i(dft_test_mode_i),
         .axi_slave(s_gf_mult_bus)      // connection
        );
+
+    // viterbi_top #(
+    //    .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
+	//    .AXI_ID_WIDTH(AXI_ID_OUT_WIDTH),
+	//    .AXI_USER_WIDTH(AXI_USER_WIDTH)
+    //    ) i_gf_mult (
+    //     .clk_i(s_soc_clk),               // use clock speed of the SOC
+    //     .rst_ni(s_soc_rstn),
+    //     .test_mode_i(dft_test_mode_i),
+    //     .axi_slave(s_gf_mult_bus)      // connection
+    //    );
+
 
 
 
