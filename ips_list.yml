@@ -123,3 +123,6 @@ register_interface:
 pulp_gf_arith_ip:
   commit: main
   group: CWerberger
+viterbi:
+  commit: master
+  group: CWerberger
