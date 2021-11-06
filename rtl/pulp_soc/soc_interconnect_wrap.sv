@@ -60,7 +60,8 @@ module soc_interconnect_wrap
        XBAR_TCDM_BUS.Master     l2_interleaved_slaves[NR_L2_PORTS], // Connects to the interleaved memory banks
        XBAR_TCDM_BUS.Master     l2_private_slaves[2], // Connects to core-private memory banks
        XBAR_TCDM_BUS.Master     boot_rom_slave,//Connects to the bootrom
-       AXI_BUS.Master           gf_mult_slave // Connect gf arith NEW
+       AXI_BUS.Master           gf_mult_slave, // Connect gf arith NEW
+       AXI_BUS.Master           viterbi_slave // Connect viterbi NEW
      );
 
     //**Do not change these values unles you verified that all downstream IPs are properly parametrized and support it**
@@ -114,12 +115,12 @@ module soc_interconnect_wrap
         '{ idx: 2 , start_addr: `SOC_MEM_MAP_BOOT_ROM_START_ADDR      , end_addr: `SOC_MEM_MAP_BOOT_ROM_END_ADDR}};
 
     // ADD new MEM REGION for AXI cross bar for the gf IP
-    localparam NR_RULES_AXI_CROSSBAR = 3;
+    localparam NR_RULES_AXI_CROSSBAR = 4;       // 3 for gf, 4 for viterbi
     localparam addr_map_rule_t [NR_RULES_AXI_CROSSBAR-1:0] AXI_CROSSBAR_RULES = '{
        '{ idx: 0, start_addr: `SOC_MEM_MAP_AXI_PLUG_START_ADDR,    end_addr: `SOC_MEM_MAP_AXI_PLUG_END_ADDR},
        '{ idx: 1, start_addr: `SOC_MEM_MAP_PERIPHERALS_START_ADDR, end_addr: `SOC_MEM_MAP_PERIPHERALS_END_ADDR},
-       '{ idx: 2, start_addr: `SOC_MEM_MAP_GF_MULT_START_ADDR,     end_addr: `SOC_MEM_MAP_GF_MULT_END_ADDR}}; // add new Adress Rule for the new gf IP
-
+       '{ idx: 2, start_addr: `SOC_MEM_MAP_GF_MULT_START_ADDR,     end_addr: `SOC_MEM_MAP_GF_MULT_END_ADDR}}, // add new Adress Rule for the new gf IP
+       '{ idx: 2, start_addr: `SOC_MEM_MAP_VITERBI_START_ADDR,     end_addr: `SOC_MEM_MAP_VITERBI_END_ADDR}}; // add new Adress Rule for Viterbi
     //For legacy reasons, the fc_data port can alias the address prefix 0x000 to 0x1c0. E.g. an access to 0x00001234 is
     //mapped to 0x1c001234. The following lines perform this remapping.
     XBAR_TCDM_BUS tcdm_fc_data_addr_remapped();
@@ -181,12 +182,12 @@ module soc_interconnect_wrap
               .AXI_DATA_WIDTH(32),
               .AXI_ID_WIDTH(pkg_soc_interconnect::AXI_ID_OUT_WIDTH),
               .AXI_USER_WIDTH(AXI_USER_WIDTH)
-              ) axi_slaves[3](); 
-        //    ) axi_slaves[4](); // add Viterbi  
+        //      ) axi_slaves[3](); 
+            ) axi_slaves[4](); // add Viterbi  
     `AXI_ASSIGN(axi_slave_plug, axi_slaves[0])
     `AXI_ASSIGN(axi_to_axi_lite_bridge, axi_slaves[1])
-    `AXI_ASSIGN(gf_mult_slave, axi_slaves[2]) // add new Port for gf IP
-   // `AXI_ASSIGN(viterbi_slave, axi_slaves[3])  // virberbi Port
+    `AXI_ASSIGN(gf_mult_slave, axi_slaves[2])   // add new Port for gf IP
+    `AXI_ASSIGN(viterbi_slave, axi_slaves[3])   // virberbi Port
 
     //Interconnect instantiation
     soc_interconnect #(
@@ -201,8 +202,8 @@ module soc_interconnect_wrap
                                                   // programm instructions and 1 for programm stack )
                        .NR_ADDR_RULES_SLAVE_PORTS_CONTIG(NR_RULES_CONTIG_CROSSBAR),
 // increase size of AXI_SLAVE for gf IP
-                       .NR_AXI_SLAVE_PORTS(3), // 1 for AXI to cluster, 1 for SoC peripherals (converted to APB)
-                    //  .NR_AXI_SLAVE_PORTS(4), 
+                    //   .NR_AXI_SLAVE_PORTS(3), // 1 for AXI to cluster, 1 for SoC peripherals (converted to APB)
+                       .NR_AXI_SLAVE_PORTS(4),   // 4 Ports for 2 new IPS
                        .NR_ADDR_RULES_AXI_SLAVE_PORTS(NR_RULES_AXI_CROSSBAR),
                        .AXI_MASTER_ID_WIDTH(1), //Doesn't need to be changed. All axi masters in the current
                                                 //interconnect come from a TCDM protocol converter and thus do not have and AXI ID.
